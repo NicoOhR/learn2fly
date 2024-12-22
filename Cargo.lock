@@ -30,6 +30,14 @@ name = "learn2fly"
 version = "0.1.0"
 
 [[package]]
+name = "lib-genetic-algorithm"
+version = "0.1.0"
+dependencies = [
+ "rand",
+ "rand_chacha",
+]
+
+[[package]]
 name = "lib-neural-network"
 version = "0.1.0"
 dependencies = [

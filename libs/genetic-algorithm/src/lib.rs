@@ -95,21 +95,55 @@ pub trait SelectionMethod {
 pub trait Individual {
     fn fitness(&self) -> f32;
     fn chromosome(&self) -> &Chromosome;
+    fn create(chromosome: Chromosome) -> Self;
+}
+
+pub trait MutationMethod {
+    fn mutate(&self, rng: &mut dyn RngCore, child: &mut Chromosome);
+}
+
+pub struct GuassianMutation {
+    chance: f32,
+    coeff: f32,
+}
+
+impl GuassianMutation {
+    pub fn new(chance: f32, coeff: f32) -> Self {
+        Self { chance, coeff }
+    }
+}
+
+impl MutationMethod for GuassianMutation {
+    fn mutate(&self, rng: &mut dyn RngCore, child: &mut Chromosome) {
+        let chromosome = child.iter_mut();
+        for gene in chromosome {
+            let sign = if rng.gen_bool(0.5) { -1.0 } else { 1.0 };
+            if rng.gen_bool(self.chance as f64) {
+                *gene += sign * self.coeff * rng.gen::<f32>()
+            }
+        }
+    }
 }
 
 pub struct GeneticAlgorithm<S> {
     selection_method: S,
     crossover_method: Box<dyn CrossoverMethod>,
+    mutation_method: Box<dyn MutationMethod>,
 }
 
 impl<S> GeneticAlgorithm<S>
 where
     S: SelectionMethod,
 {
-    pub fn new(selection_method: S, crossover_method: impl CrossoverMethod + 'static) -> Self {
+    pub fn new(
+        selection_method: S,
+        crossover_method: impl CrossoverMethod + 'static,
+        mutation_method: impl MutationMethod + 'static,
+    ) -> Self {
         Self {
             selection_method,
             crossover_method: Box::new(crossover_method),
+            mutation_method: Box::new(mutation_method),
         }
     }
 
@@ -122,7 +156,8 @@ where
                 let parent_a = self.selection_method.select(rng, population).chromosome();
                 let parent_b = self.selection_method.select(rng, population).chromosome();
                 let mut child = self.crossover_method.crossover(rng, parent_a, parent_b);
-                todo!();
+                self.mutation_method.mutate(rng, &mut child);
+                I::create(child)
             })
             .collect()
     }

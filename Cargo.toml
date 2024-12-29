@@ -11,4 +11,4 @@ resolver = "2"
 memebers = [
   "libs/*",
 ]
-members = [ "libs/genetic-algorithm","libs/neural-network"]
+members = [ "libs/genetic-algorithm","libs/neural-network", "libs/simulation", "libs/simulation-wasm"]
